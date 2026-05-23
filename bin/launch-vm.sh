@@ -195,9 +195,15 @@ resize-clone() {
 
 vm-setup() {
     CLOUD_CONFIG_FILE="${CLOUD_CONFIG:-${LVTEMPLATES}/cloud-config.yml}"
+    META_DATA_FILE="${META_DATA_FILE:-${LVTEMPLATES}/meta-data.yml}"
 
     if [[ ! -f "${CLOUD_CONFIG_FILE}" ]]; then
         echo "Error: Cloud-init config file '${CLOUD_CONFIG_FILE}' not found."
+        exit 1
+    fi
+
+    if [[ ! -f "${META_DATA_FILE}" ]]; then
+        echo "Error: Meta-data config file '${META_DATA_FILE}' not found."
         exit 1
     fi
 
@@ -210,7 +216,7 @@ vm-setup() {
         --network "network=${NETWORK},model=virtio" \
         --virt-type kvm \
         --import \
-        --cloud-init "user-data=${CLOUD_CONFIG_FILE}" \
+        --cloud-init meta-data="${META_DATA_FILE}",user-data="${CLOUD_CONFIG_FILE}" \
         --wait \
         --noautoconsole \
         --console "${CONSOLE:-}" \
