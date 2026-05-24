@@ -39,7 +39,7 @@ function usage() {
     echo "  -n NAME      VM Name"
     echo "  -c VCPUS     Number of CPUs (default: ${VCPUS})"
     echo "  -m MEM       Memory in MB (default: ${VMEM})"
-    echo "  -s SIZE      Resize the cloned disk to SIZE GB (optional)"
+    echo "  -s SIZE      Resize the cloned disk to SIZE GB (default: ${SIZE}GB)"
     echo "  -f           Force a fresh download if the base volume already exists"
     echo "  -v           Show version and exit"
     echo
