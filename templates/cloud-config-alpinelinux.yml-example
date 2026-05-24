@@ -16,6 +16,7 @@ users:
     sudo: ALL=(ALL) NOPASSWD:ALL
     groups: sudo
     lock_passwd: False
+    # Create a password: mkpasswd -m sha512crypt -s
     passwd: $6$7guwKMzfzh2tsoef$GpUVIgeFyCGigDVR2YMW6yk0hTMgCjmC3Bxt/MxnbaoGKeVKak2WU2eGDGnRO2iXfu9dk3RbAcX1Q9jP/do4d1
     #ssh-authorized-keys:
     #  - ssh-rsa <redacted>
