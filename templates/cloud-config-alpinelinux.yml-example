@@ -10,6 +10,7 @@ packages:
   - qemu-guest-agent
 runcmd:
   - echo UsePAM yes >> /etc/ssh/sshd_config
+  - rc-update add qemu-guest-agent
 users:
   - name: cloud
     gecos: Cloud User
