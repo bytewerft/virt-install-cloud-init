@@ -1,4 +1,5 @@
 templates/cloud-config.yml
+templates/cloud-config-alpinelinux.yml
 templates/meta-data.yml
 templates/launch-vm.ini
 templates/*lab*
