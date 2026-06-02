@@ -29,7 +29,6 @@ sudo usermod -aG libvirt,kvm $USER
 
 Example templates are provided in the `templates` directory:
 
-- `meta-data.yml-example`
 - `cloud-config.yml-example`
 - `cloud-config-alpinelinux.yml-example` 
 - `launch-vm.ini-example`
@@ -37,7 +36,6 @@ Example templates are provided in the `templates` directory:
 To set up your configuration:
 
 ```bash
-cp templates/meta-data.ini-example templates/meta-data.ini
 cp templates/cloud-config.yml-example templates/cloud-config.yml
 cp templates/cloud-config-alpinelinux.yml-example templates/cloud-config-alpinelinux.yml #if you wish to use Alpine Linux:
 cp templates/launch-vm.ini-example templates/launch-vm.ini
@@ -47,7 +45,6 @@ Edit:
 
 - **`launch-vm.ini`** to configure network, CPUs, RAM, storage pool, etc.
 - **`cloud-config.yml`** to define the default user, password, and SSH key.
-- **`meta-data.yml`** to define server name or instance id. Leave empty for now.
 
 ### **Adding New Distributions**
 

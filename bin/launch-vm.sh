@@ -214,17 +214,18 @@ resize-clone() {
 
 vm-setup() {
     CLOUD_CONFIG_FILE="${CLOUD_CONFIG:-${LVTEMPLATES}/cloud-config.yml}"
-    META_DATA_FILE="${META_DATA_FILE:-${LVTEMPLATES}/meta-data.yml}"
 
     if [[ ! -f "${CLOUD_CONFIG_FILE}" ]]; then
         echo "Error: Cloud-init config file '${CLOUD_CONFIG_FILE}' not found."
         exit 1
     fi
 
-    if [[ ! -f "${META_DATA_FILE}" ]]; then
-        echo "Error: Meta-data config file '${META_DATA_FILE}' not found."
-        exit 1
-    fi
+    META_DATA_FILE="$(mktemp -t meta-data-XXXXXX)"
+    trap 'rm -f "${META_DATA_FILE}"' EXIT
+    cat > "${META_DATA_FILE}" <<EOF
+instance-id: iid-${VMNAME}
+local-hostname: ${VMNAME}
+EOF
 
     VIRT_INSTALL_OPTIONS=(
       --name "${VMNAME}" \
