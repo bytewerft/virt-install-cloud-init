@@ -12,6 +12,9 @@ SCRIPTHOME="$(dirname "$(dirname "$(realpath "$0")")")"
 # Ensure LVTEMPLATES is always set before it is used
 LVTEMPLATES="${SCRIPTHOME}/templates"
 
+# Read the network-config-keys
+source ${LVTEMPLATES}/network-config/network-config-keys.env.sh
+
 # -------------------------------------------------------------------------
 # Load config from .ini or fall back to defaults
 # -------------------------------------------------------------------------
@@ -33,15 +36,18 @@ fi
 function usage() {
     echo "Usage: $(basename "$0") [options]"
     echo "Deploy a cloud image to a libvirt-managed hypervisor."
+    echo "Network interface will be configured using dhcp by default. This can be overwritten by using -i to set a static IPv4 address."
     echo
     echo "Options:"
-    echo "  -d DISTRIB   Distribution name (e.g. 'ubuntu22.04')"
-    echo "  -n NAME      VM Name"
-    echo "  -c VCPUS     Number of CPUs (default: ${VCPUS})"
-    echo "  -m MEM       Memory in MB (default: ${VMEM})"
-    echo "  -s SIZE      Resize the cloned disk to SIZE GB (default: ${SIZE}GB)"
-    echo "  -f           Force a fresh download if the base volume already exists"
-    echo "  -v           Show version and exit"
+    echo "  -d DISTRIB    Distribution name (e.g. 'ubuntu22.04')"
+    echo "  -n NAME       VM Name"
+    echo "  -c VCPUS      Number of CPUs (default: ${VCPUS})"
+    echo "  -m MEM        Memory in MB (default: ${VMEM})"
+    echo "  -s SIZE       Resize the cloned disk to SIZE GB (default: ${SIZE}GB)"
+    echo "  -i IP_ADDRESS Optional: Static IPv4 address in CIDR (e.g. 192.168.1.100/24)"
+    echo "  -g GATEWAY    Mandatory if -i is set: Gateway IPv4 address (e.g. 192.168.1.1)"
+    echo "  -f            Force a fresh download if the base volume already exists"
+    echo "  -v            Show version and exit"
     echo
     exit 1
 }
@@ -49,7 +55,7 @@ function usage() {
 # -------------------------------------------------------------------------
 # Parse arguments
 # -------------------------------------------------------------------------
-optstring="d:n:c:m:s:fvh"
+optstring="d:n:c:m:s:i:g:fvh"
 
 FETCH=""
 TMP_DIR=""
@@ -70,6 +76,12 @@ while getopts ${optstring} arg; do
             ;;
         s)
             SIZE="${OPTARG}"
+            ;;
+        i)
+            IP_ADDRESS="${OPTARG}"
+            ;;
+        g)
+            GATEWAY="${OPTARG}"
             ;;
         f)
             FETCH='true'
@@ -92,6 +104,13 @@ done
 if [[ -z "${VMNAME:-}" || -z "${DISTRIBUTION:-}" ]]; then
     usage
 fi
+
+if [[ ! -z "${IP_ADDRESS:-}" && -z "${GATEWAY:-}" ]]; then
+    echo "Error: Option -g GATEWAY must be set if -i ${IP_ADDRESS} is set."
+    exit 1
+fi
+
+
 
 # -------------------------------------------------------------------------
 # Load distribution-specific .ini
@@ -207,21 +226,42 @@ vm-setup() {
         exit 1
     fi
 
-    virt-install \
-        --name "${VMNAME}" \
-        --memory "${VMEM}" \
-        --vcpus "${VCPUS}" \
-        --disk "vol=${VMPOOL}/${VMVOL},bus=virtio,format=qcow2" \
-        --os-variant "${OSVARIANT}" \
-        --network "network=${NETWORK},model=virtio" \
-        --virt-type kvm \
-        --import \
-        --cloud-init meta-data="${META_DATA_FILE}",user-data="${CLOUD_CONFIG_FILE}" \
-        --wait \
-        --noautoconsole \
-        --console "${CONSOLE:-}" \
-        --video none \
-        --qemu-commandline="-smbios type=1,serial=ds=nocloud;h=${VMNAME}.${DOMAIN}"
+    VIRT_INSTALL_OPTIONS=(
+      --name "${VMNAME}" \
+      --memory "${VMEM}" \
+      --vcpus "${VCPUS}" \
+      --disk "vol=${VMPOOL}/${VMVOL},bus=virtio,format=qcow2" \
+      --os-variant "${OSVARIANT}" \
+      --network "network=${NETWORK},model=virtio" \
+      --virt-type kvm \
+      --import \
+      --cloud-init meta-data="${META_DATA_FILE}",user-data="${CLOUD_CONFIG_FILE}" \
+      --wait \
+      --noautoconsole \
+      --console "${CONSOLE:-}" \
+      --video none \
+      --qemu-commandline="-smbios type=1,serial=ds=nocloud;h=${VMNAME}.${DOMAIN}"
+    )
+
+    if [[ -z "${IP_ADDRESS:-}" ]]; then
+      # do cloud-init without network-config
+      CLOUD_INIT_OPTION="--cloud-init meta-data=${META_DATA_FILE},user-data=${CLOUD_CONFIG_FILE}"
+    else
+      # do cloud-init with network-config
+      NETWORK_CONFIG_KEY=${network_config_key["${DISTRIBUTION}"]}
+      NETWORK_CONFIG_FILE=${LVTEMPLATES}/network-config/network-config-${NETWORK_CONFIG_KEY}.yml
+      NETWORK_CONFIG_TEMPLATE_FILE=${LVTEMPLATES}/network-config/network-config-template-${NETWORK_CONFIG_KEY}.yml
+      echo "Create network-config from template: ${NETWORK_CONFIG_TEMPLATE_FILE} with address: ${IP_ADDRESS} and with gateway: ${GATEWAY}"
+      cp ${NETWORK_CONFIG_TEMPLATE_FILE} ${NETWORK_CONFIG_FILE}
+      IP_ADDRESS=$(echo ${IP_ADDRESS} | sed 's/\//\\&/g') # Mask / in IP_ADDRESS: a.b.c.d/n => a.b.c.d.\/.n
+      sed -i "s/{{IP_ADDRESS}}/${IP_ADDRESS}/" ${NETWORK_CONFIG_FILE}
+      sed -i "s/{{GATEWAY}}/${GATEWAY}/" ${NETWORK_CONFIG_FILE}
+      CLOUD_INIT_OPTION="--cloud-init meta-data=${META_DATA_FILE},user-data=${CLOUD_CONFIG_FILE},network-config=${NETWORK_CONFIG_FILE}"
+    fi
+
+    VIRT_INSTALL_OPTIONS+=(${CLOUD_INIT_OPTION})
+
+    virt-install "${VIRT_INSTALL_OPTIONS[@]}"
 }
 
 # -------------------------------------------------------------------------

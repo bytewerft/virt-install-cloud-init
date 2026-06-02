@@ -61,7 +61,8 @@ VMPOOL=vm-pool
 CONSOLE="pty,target_type=virtio"
 ```
 
----
+Add the key for the corresponding network-config-template for the new distribution in ```templates/network-config/network-config-keys.env.sh```.
+If needed, create a new network-config-template.
 
 ## **Storage Pool Setup**
 
@@ -87,6 +88,17 @@ virsh pool-autostart vm-pool
 - **`-c 2`** → CPUs
 - **`-m 2048`** → Memory (MB)
 - **`-s 32`** → Disk size (GB)
+
+### **Static IPv4 Address**
+By default, creating a virtual machine configures its network interface getting its ip address by dhcp.
+To configure a static IPv4 instead, use the ```-i``` and ```-g``` options.
+```-i``` sets the IPv4 address in CIDR notation. ```-g``` sets the gateway.
+Using these options generates a network-config file from the corresponding template in ```./templates/network-config/```
+that will be used by ```virt-install --cloud-init``` option.  
+
+```bash
+./bin/launch-vm.sh -d ubuntu22.04 -n MyUbuntuVM -c 2 -m 2048 -s 32 -i 192.168.1.10/24 -g 192.168.1.1
+```
 
 ### **Deploying to a Remote Hypervisor**
 

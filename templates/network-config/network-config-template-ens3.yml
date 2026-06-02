@@ -1,0 +1,10 @@
+version: 2
+ethernets:
+  ens3:
+    addresses:
+      - {{IP_ADDRESS}}
+    gateway4: {{GATEWAY}}
+    nameservers:
+      addresses:
+        - {{GATEWAY}}
+        - 1.1.1.1
