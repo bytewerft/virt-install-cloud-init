@@ -8,5 +8,6 @@ templates/network-config/network-config-alpinelinux.yml
 templates/network-config/network-config-enp1s0.yml
 templates/network-config/network-config-ens3.yml
 templates/network-config/network-config-eth0.yml
+lab
 .vscode
 .idea
