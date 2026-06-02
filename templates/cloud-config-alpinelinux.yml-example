@@ -1,27 +1,41 @@
 #cloud-config
-manage_etc_hosts: true
-preserv_hostname: false
-timezone: Europe/Amsterdam
+# When using static ip configuration net-config does not create a resolv.conf
+# https://gitlab.alpinelinux.org/alpine/cloud/alpine-cloud-images/-/work_items/168
+# Workaround is to create resolv.conf here
+#manage_resolv_conf: true
+#resolv_conf:
+#  nameservers: [8.8.8.8, 8.8.4.4]
 package_upgrade: true
 package_update: true
 packages:
-  - openssh-server
   - sudo
   - qemu-guest-agent
 runcmd:
-  - echo UsePAM yes >> /etc/ssh/sshd_config
   - rc-update add qemu-guest-agent
+  - sed -i -e 's/timeout=10/timeout=1/g' /etc/update-extlinux.conf && update-extlinux
 users:
   - name: cloud
-    gecos: Cloud User
     sudo: ALL=(ALL) NOPASSWD:ALL
-    groups: sudo
-    lock_passwd: False
+    lock_passwd: false
     # Create a password: mkpasswd -m sha512crypt -s
-    passwd: $6$7guwKMzfzh2tsoef$GpUVIgeFyCGigDVR2YMW6yk0hTMgCjmC3Bxt/MxnbaoGKeVKak2WU2eGDGnRO2iXfu9dk3RbAcX1Q9jP/do4d1
-    #ssh-authorized-keys:
-    #  - ssh-rsa <redacted>
+    passwd: $6$ATDaGC12699/EXd3$U9WcFlrGSi/4a7Z6qXRPsmuObfrACAwjKhQsHJsvIdzrHlTgFcCb9fq/uPd8olGPebDOt3YgNmeJUWN7BrcmX.
+    ssh_authorized_keys:
+      - ssh-ed25519 <redacted>
 power_state:
   mode: poweroff
   timeout: 30
   condition: True
+write_files:
+  - path: /etc/motd
+    content: |+
+
+      Welcome to Alpine!
+
+      The Alpine Wiki contains a large amount of how-to guides and general
+      information about administrating Alpine systems.
+      See <https://wiki.alpinelinux.org>.
+
+      Alpine release notes:
+      * <https://alpinelinux.org/posts/Alpine-3.20.10-3.21.7-3.22.4-3.23.4-released.html>
+
+    defer: false
