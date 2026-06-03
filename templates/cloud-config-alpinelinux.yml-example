@@ -11,8 +11,9 @@ packages:
   - sudo
   - qemu-guest-agent
 runcmd:
-  - rc-update add qemu-guest-agent
   - sed -i -e 's/timeout=10/timeout=1/g' /etc/update-extlinux.conf && update-extlinux
+  - rc-update add qemu-guest-agent
+  - [ sh, -c, 'echo "network: {config: disabled}" > /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg' ]
 users:
   - name: cloud
     sudo: ALL=(ALL) NOPASSWD:ALL

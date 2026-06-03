@@ -57,7 +57,7 @@ OSVARIANT=debian12
 VMPOOL=vm-pool
 CONSOLE="pty,target_type=virtio"
 ```
-
+#### **Add Key in ```network-config-keys.env.sh```**
 Add the key for the corresponding network-config-template for the new distribution in ```templates/network-config/network-config-keys.env.sh```.
 If needed, create a new network-config-template.
 
@@ -95,6 +95,15 @@ that will be used by ```virt-install --cloud-init``` option.
 
 ```bash
 ./bin/launch-vm.sh -d ubuntu22.04 -n MyUbuntuVM -c 2 -m 2048 -s 32 -i 192.168.1.10/24 -g 192.168.1.1
+```
+
+#### **Stop cloud-init overwriting network configuration**
+Especially if using static IPv4 configuration cloud-init should be stopped overwriting the custom network configuration on every reboot.
+This could be reached by adding the following command in ```cloud-init.yml``` in the section runcmd:
+
+```yml
+runcmd:
+   - [ sh, -c, 'echo "network: {config: disabled}" > /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg' ]
 ```
 
 ### **Deploying to a Remote Hypervisor**

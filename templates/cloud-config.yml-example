@@ -9,9 +9,10 @@ packages:
   - sudo
   - qemu-guest-agent
 runcmd:
-  - echo UsePAM yes >> /etc/ssh/sshd_config
-  - [systemctl, enable, sshd]
-  - [systemctl, start, sshd]
+  - [ sh, -c, 'echo UsePAM yes >> /etc/ssh/sshd_config' ]
+  - [ systemctl, enable, sshd ]
+  - [ systemctl, start, sshd ]
+  - [ sh, -c, 'echo "network: {config: disabled}" > /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg' ]
 users:
   - name: cloud
     gecos: Cloud User
