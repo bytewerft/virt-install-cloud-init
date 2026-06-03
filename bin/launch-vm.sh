@@ -236,7 +236,6 @@ EOF
       --network "network=${NETWORK},model=virtio" \
       --virt-type kvm \
       --import \
-      --cloud-init meta-data="${META_DATA_FILE}",user-data="${CLOUD_CONFIG_FILE}" \
       --wait \
       --noautoconsole \
       --console "${CONSOLE:-}" \
