@@ -1,0 +1,12 @@
+DISTRIBUTIONS=(
+  almalinux10
+  alpinelinux3.23
+  debian12
+  debian13
+  fedora44
+  opensuse-leap16
+  oraclelinux10
+  rockylinux10
+  ubuntu24.04
+  ubuntu26.04
+)
