@@ -212,6 +212,18 @@ resize-clone() {
     fi
 }
 
+is_valid_cidr_regex() {
+    local cidr="$1"
+    # Matches 0-255 for octets and 0-32 for mask
+    local regex='^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\/([0-9]|[1-2][0-9]|3[0-2])$'
+
+    if [[ $cidr =~ $regex ]]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
 vm-setup() {
     CLOUD_CONFIG_FILE="${CLOUD_CONFIG:-${LVTEMPLATES}/cloud-config.yml}"
 
@@ -248,6 +260,10 @@ EOF
       CLOUD_INIT_OPTION="--cloud-init meta-data=${META_DATA_FILE},user-data=${CLOUD_CONFIG_FILE}"
     else
       # do cloud-init with network-config
+      if ! is_valid_cidr_regex "${IP_ADDRESS}"; then
+        echo "Error: ${IP_ADDRESS} is not valid CIDR notation, e.g. 192.168.1.10/24"
+        exit 1
+      fi
       NETWORK_CONFIG_KEY=${network_config_key["${DISTRIBUTION}"]}
       NETWORK_CONFIG_FILE=${LVTEMPLATES}/network-config/network-config-${NETWORK_CONFIG_KEY}.yml
       NETWORK_CONFIG_TEMPLATE_FILE=${LVTEMPLATES}/network-config/network-config-template-${NETWORK_CONFIG_KEY}.yml
