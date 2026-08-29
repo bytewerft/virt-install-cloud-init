@@ -6,6 +6,7 @@ declare -A network_config_key
 
 network_config_key["almalinux10"]="eth0"
 network_config_key["alpinelinux3.23"]="alpinelinux"
+network_config_key["alpinelinux3.24"]="alpinelinux"
 network_config_key["debian12"]="enp1s0"
 network_config_key["debian13"]="enp1s0"
 network_config_key["fedora44"]="enp1s0"
